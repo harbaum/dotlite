@@ -17,6 +17,23 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 #define setPixel(p,r,g,b)  pixels.setPixelColor(p-1, pixels.Color(r, g, b))
 
+// color map for splash screen
+uint8_t colors[][3] = { 
+  {0,0,0}, {255,255,0}, {255,0,0}, {255,255,255}
+};
+
+// splash screen
+uint8_t splash[] = {
+  0,0,1,1,1,1,0,0,
+  0,1,3,1,1,3,1,0,
+  1,3,3,1,1,3,3,1,
+  1,3,3,1,1,3,3,1,
+  1,1,1,1,1,1,1,1,
+  1,1,2,2,2,2,1,1,
+  0,1,1,2,2,1,1,0,
+  0,0,1,1,1,1,0,0,
+};
+
 class Callbacks: public BLECharacteristicCallbacks {
   
     void onWrite(BLECharacteristic *pCharacteristic) {
@@ -63,11 +80,13 @@ void setup() {
   pixels.clear();
   pixels.setBrightness(BRIGHTNESS);
 
-  // light up first led for half a second to indicate successful boot
-  setPixel(1, 255, 0, 0);
+  // splash screen for a second to indicate successful boot
+  for(uint8_t i=0;i<NUMPIXELS;i++)  
+    setPixel(i+1, colors[splash[i]][0], colors[splash[i]][1], colors[splash[i]][2]);
+    
   pixels.show();
-  delay(500);
-  setPixel(1, 0, 0, 0);
+  delay(1000);
+  pixels.clear();
   pixels.show();
 }
 
