@@ -3,7 +3,7 @@
 Lightweight implementation of a
 [DOTTI](https://www.wittidesign.com/products/dotti-one) like device
 compatible with the [Webbluetooth LED Display
-Demo](https://github.com/WebBluetoothCG/demos/tree/gh-pages/bluetooth-led-display).
+Demo](https://github.com/WebBluetoothCG/demos/tree/gh-pages/bluetooth-led-display) and [dotti-interfacing](https://github.com/MartyMacGyver/dotti-interfacing).
 
 ![dotlite in browser](browser.jpg)
 

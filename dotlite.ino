@@ -17,10 +17,10 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 #define setPixel(p,r,g,b)  pixels.setPixelColor(p-1, pixels.Color(r, g, b))
 
-class MyCallbacks: public BLECharacteristicCallbacks {
+class Callbacks: public BLECharacteristicCallbacks {
+  
     void onWrite(BLECharacteristic *pCharacteristic) {
       std::string value = pCharacteristic->getValue();
-
       // set all pixels
       if(value.length() == 5 && value[0] == 6 && value[1] == 1) {
         for(uint8_t i=1;i<=NUMPIXELS;i++) setPixel(i, value[2], value[3], value[4]);
@@ -42,10 +42,15 @@ void setup() {
   BLEService *pService = pServer->createService(SERVICE_UUID);
   BLECharacteristic *pCharacteristic = pService->createCharacteristic(
                                          CHARACTERISTIC_UUID,
-                                         BLECharacteristic::PROPERTY_WRITE
+                                         BLECharacteristic::PROPERTY_WRITE |
+                                         BLECharacteristic::PROPERTY_NOTIFY |
+                                         BLECharacteristic::PROPERTY_READ
                                        );
-                                       
-  pCharacteristic->setCallbacks(new MyCallbacks());
+  BLEDescriptor *pDescriptor = new BLEDescriptor((uint16_t)0x2902); 
+  pCharacteristic->addDescriptor(pDescriptor);
+  
+  pCharacteristic->setCallbacks(new Callbacks());
+  pCharacteristic->setValue("dotilite");
   pService->start();
 
   // advertise service
