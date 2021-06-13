@@ -6,9 +6,11 @@
 #include <BLEServer.h>
 #include <Adafruit_NeoPixel.h>
 
-#define PIN         13
-#define NUMPIXELS   64
-#define BRIGHTNESS 128
+#define PIN          13
+#define WIDTH         8
+#define HEIGHT        8
+#define NUMPIXELS   (WIDTH*HEIGHT)
+#define BRIGHTNESS  128
 
 #define SERVICE_UUID "0000fff0-0000-1000-8000-00805f9b34fb"
 #define CHARACTERISTIC_UUID "0000fff3-0000-1000-8000-00805f9b34fb"
@@ -34,20 +36,55 @@ uint8_t splash[] = {
   0,0,1,1,1,1,0,0,
 };
 
+// from https://github.com/lrucker1/homebridge-dotti/blob/master/dotti.js
+#define CMD_SET_LED         0x0702
+#define CMD_SET_LED_ALL     0x0601
+#define CMD_SET_LED_ROW     0x0704
+#define CMD_SET_LED_COLUMN  0x0703
+#define CMD_MODE            0x0405
+#define CMD_SYNC_TIME       0x0609
+#define CMD_ANIMATION_SPEED 0x0415
+#define CMD_SAVE_SCREEN     0x0607
+#define CMD_LOAD_SCREEN     0x0608
+    
 class Callbacks: public BLECharacteristicCallbacks {
   
     void onWrite(BLECharacteristic *pCharacteristic) {
       std::string value = pCharacteristic->getValue();
-      // set all pixels
-      if(value.length() == 5 && value[0] == 6 && value[1] == 1) {
-        for(uint8_t i=1;i<=NUMPIXELS;i++) setPixel(i, value[2], value[3], value[4]);
-        pixels.show();          
-      }
+
+      if(value.length() >= 2) {
+        // at least two bytes for command word are needed
+        uint16_t cmd = 256 * value[0] + value[1];
+
+      	switch(cmd) {
+          case CMD_SET_LED:     // set individiual pixel
+            if(value.length() == 6) {
+              setPixel(value[2], value[3], value[4], value[5]);
+              pixels.show();
+            }
+            break;
+            
+	        case CMD_SET_LED_ALL: // set all pixels
+	          if(value.length() == 5) {
+	            for(uint8_t i=1;i<=NUMPIXELS;i++) setPixel(i, value[2], value[3], value[4]);
+	            pixels.show();          
+	          }
+	          break;
         
-      // set individiual pixel
-      if(value.length() == 6 && value[0] == 7 && value[1] == 2) {
-        setPixel(value[2], value[3], value[4], value[5]);
-        pixels.show();
+          case CMD_SET_LED_ROW: // set all pixels on a row
+            if(value.length() == 5) {
+              for(uint8_t i=1;i<=WIDTH;i++) setPixel(i+(value[2]-1)*WIDTH, value[3], value[4], value[5]);
+              pixels.show();          
+            }
+            break;
+            
+          case CMD_SET_LED_COLUMN: // set all pixels on a column
+            if(value.length() == 5) {
+              for(uint8_t i=0;i<HEIGHT;i++) setPixel(value[2]+i*WIDTH, value[3], value[4], value[5]);
+              pixels.show();          
+            }
+            break;
+	        }
       }
     }
 };
